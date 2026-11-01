@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Account — The Linen House</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <main class="wrap" style="padding-bottom:100px">
+    <div class="breadcrumb"><a href="/">Home</a> / Account</div>
+    <h1 style="font-size:clamp(2.4rem,5vw,3.4rem)">My account</h1>
+    <div class="cart-layout" style="padding-top:12px">
+      <section>
+        <h2 style="font-size:1.7rem">Order history</h2>
+        <div id="orders"></div>
+      </section>
+      <aside class="summary">
+        <h2>Saved details</h2>
+        <div id="details" style="color:var(--grey);font-size:.92rem"></div>
+        <a href="/shop?filter=wishlist" class="btn btn-outline btn-block" style="margin-top:20px">View wishlist</a>
+      </aside>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="/js/app.js"></script>
+  <script>
+    const { inr, esc } = TLH;
+    const read = (k, f) => { try { return JSON.parse(localStorage.getItem(k)) || f; } catch { return f; } };
+    const orders = read('tlh_orders', []);
+    const c = read('tlh_customer', null);
+    document.getElementById('orders').innerHTML = orders.length ? orders.map((o) => `
+      <div class="cart-item" style="grid-template-columns:1fr auto">
+        <div><h3 style="margin:0">${esc(o.receipt)}</h3><div style="color:var(--grey);font-size:.85rem">${new Date(o.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })} · ${o.items.map((i) => `${esc(i.name)} × ${i.qty}`).join(', ')}</div></div>
+        <strong style="font-weight:400">${inr(o.total)}</strong>
+      </div>`).join('') : '<p style="color:var(--grey)">You haven\'t placed any orders on this device yet.</p><a class="btn" href="/shop">Start shopping</a>';
+    document.getElementById('details').innerHTML = c ? `<p>${esc(c.name)}<br>${esc(c.email)}<br>${esc(c.phone)}</p><p>${esc(c.address)}<br>${esc(c.city)}, ${esc(c.state)} ${esc(c.pincode)}</p>` : '<p>Your details will be saved here after your first checkout.</p>';
+  </script>
+</body>
+</html>

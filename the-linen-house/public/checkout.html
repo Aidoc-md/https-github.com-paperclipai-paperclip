@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout — The Linen House</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <main class="wrap">
+    <div class="breadcrumb"><a href="/">Home</a> / <a href="/cart">Cart</a> / Checkout</div>
+    <h1 style="font-size:clamp(2.4rem,5vw,3.4rem)">Checkout</h1>
+    <div id="checkout"></div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    (async () => {
+      const { Cart, inr, esc, api } = TLH;
+      const root = document.getElementById('checkout');
+      const items = Cart.items();
+      if (!items.length) {
+        root.innerHTML = '<div class="empty"><h3>Your cart is empty</h3><a class="btn" href="/shop">Start shopping</a></div>';
+        return;
+      }
+
+      const cartPayload = () => Cart.items().map((i) => ({ id: i.id, qty: i.qty, size: i.size, color: i.color }));
+      const [cfg, quote] = await Promise.all([api('/api/checkout/config'), api('/api/checkout/quote', { body: { items: cartPayload() } })]);
+      const saved = (() => { try { return JSON.parse(localStorage.getItem('tlh_customer')) || {}; } catch { return {}; } })();
+      const v = (k) => esc(saved[k] || '');
+      const states = ['Andhra Pradesh','Assam','Bihar','Chandigarh','Chhattisgarh','Delhi','Goa','Gujarat','Haryana','Himachal Pradesh','Jammu & Kashmir','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Odisha','Puducherry','Punjab','Rajasthan','Tamil Nadu','Telangana','Uttar Pradesh','Uttarakhand','West Bengal'];
+
+      root.innerHTML = `
+        <div class="checkout-layout">
+          <form id="form" novalidate>
+            <div id="msg"></div>
+            ${cfg.razorpayEnabled ? '' : '<div class="notice"><strong>Demo mode:</strong> Razorpay keys are not configured on the server, so payment will be simulated. Add <code>RAZORPAY_KEY_ID</code> and <code>RAZORPAY_KEY_SECRET</code> to <code>.env</code> to take real payments.</div>'}
+            <section class="form-section">
+              <h2>Contact <small>01</small></h2>
+              <div class="form-grid">
+                <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" required value="${v('email')}"></div>
+                <div class="field"><label for="phone">Mobile number</label><input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="10-digit mobile" required value="${v('phone')}"></div>
+              </div>
+            </section>
+            <section class="form-section">
+              <h2>Shipping address <small>02</small></h2>
+              <div class="form-grid">
+                <div class="field full"><label for="name">Full name</label><input id="name" name="name" autocomplete="name" required value="${v('name')}"></div>
+                <div class="field full"><label for="address">Address</label><input id="address" name="address" autocomplete="street-address" placeholder="House no., street, area" required value="${v('address')}"></div>
+                <div class="field"><label for="city">City</label><input id="city" name="city" autocomplete="address-level2" required value="${v('city')}"></div>
+                <div class="field"><label for="state">State</label><select id="state" name="state" required><option value="">Select state</option>${states.map((s) => `<option ${saved.state === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+                <div class="field"><label for="pincode">PIN code</label><input id="pincode" name="pincode" inputmode="numeric" maxlength="6" autocomplete="postal-code" required value="${v('pincode')}"></div>
+                <div class="field"><label>Country</label><input value="India" disabled></div>
+              </div>
+            </section>
+            <section class="form-section">
+              <h2>Payment <small>03</small></h2>
+              <div class="pay-option">
+                <input type="radio" checked aria-label="Razorpay">
+                <div><strong style="font-weight:400">Razorpay Secure</strong><small>UPI, cards, net banking & wallets</small></div>
+                <div class="pay-methods"><span>UPI</span><span>VISA</span><span>MASTERCARD</span><span>RUPAY</span></div>
+              </div>
+            </section>
+            <button class="btn btn-block" id="pay" type="submit">Pay ${inr(quote.total)}</button>
+            <div class="secure">🔒 Payments are encrypted and processed securely by Razorpay</div>
+          </form>
+
+          <aside class="summary">
+            <h2>In your bag</h2>
+            <div class="mini-items">
+              ${items.map((i) => `<div class="mini-item"><div class="thumb"><img src="${i.image}" alt=""><b>${i.qty}</b></div><div><h4>${esc(i.name)}</h4><p>${esc(i.color)} · ${esc(i.size)}</p></div><span>${inr(i.price * i.qty)}</span></div>`).join('')}
+            </div>
+            <div class="sum-row"><span>Subtotal</span><span>${inr(quote.subtotal)}</span></div>
+            <div class="sum-row"><span>Shipping</span><span>${quote.shipping ? inr(quote.shipping) : 'Free'}</span></div>
+            <div class="sum-row total"><span>Total</span><span>${inr(quote.total)}</span></div>
+            <a href="/cart" class="link-underline" style="display:inline-block;margin-top:18px">Edit cart</a>
+          </aside>
+        </div>`;
+
+      const form = document.getElementById('form');
+      const payBtn = document.getElementById('pay');
+      const msg = (text, error = true) => {
+        document.getElementById('msg').innerHTML = text ? `<div class="notice ${error ? 'error' : ''}">${esc(text)}</div>` : '';
+        if (text) window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+      const busy = (on) => { payBtn.disabled = on; payBtn.textContent = on ? 'Processing…' : `Pay ${inr(quote.total)}`; };
+
+      async function finish(verifyBody, customer) {
+        const result = await api('/api/checkout/verify', { body: verifyBody });
+        const past = (() => { try { return JSON.parse(localStorage.getItem('tlh_orders')) || []; } catch { return []; } })();
+        past.unshift({ receipt: result.receipt, total: result.total, date: new Date().toISOString(), items: Cart.items().map((i) => ({ name: i.name, qty: i.qty })) });
+        try { localStorage.setItem('tlh_orders', JSON.stringify(past.slice(0, 20))); } catch {}
+        Cart.clear();
+        const qs = new URLSearchParams({ receipt: result.receipt, payment: result.paymentId, total: result.total, name: customer.name, demo: result.demo ? '1' : '' });
+        location.href = '/order-success?' + qs;
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        msg('');
+        const customer = Object.fromEntries(new FormData(form));
+        try { localStorage.setItem('tlh_customer', JSON.stringify(customer)); } catch {}
+        busy(true);
+        try {
+          const order = await api('/api/checkout/create-order', { body: { items: cartPayload(), customer } });
+
+          if (order.demo) {
+            await finish({ razorpay_order_id: order.orderId }, customer);
+            return;
+          }
+          if (typeof Razorpay === 'undefined') throw new Error('Could not load Razorpay. Check your connection and try again.');
+
+          const rzp = new Razorpay({
+            key: order.keyId,
+            amount: order.amount,
+            currency: order.currency,
+            order_id: order.orderId,
+            name: 'The Linen House',
+            description: `Order ${order.receipt}`,
+            prefill: { name: customer.name, email: customer.email, contact: customer.phone },
+            notes: { address: `${customer.address}, ${customer.city}, ${customer.state} ${customer.pincode}` },
+            theme: { color: '#2e2e32' },
+            handler: async (response) => {
+              try { await finish(response, customer); }
+              catch (err) { msg(err.message + ' If money was deducted, please contact us with your payment ID: ' + response.razorpay_payment_id); busy(false); }
+            },
+            modal: { ondismiss: () => busy(false) },
+          });
+          rzp.on('payment.failed', (r) => { msg('Payment failed: ' + (r.error?.description || 'please try again.')); busy(false); });
+          rzp.open();
+        } catch (err) {
+          msg(err.message);
+          busy(false);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

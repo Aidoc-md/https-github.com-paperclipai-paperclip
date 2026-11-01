@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thank you — The Linen House</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <main class="wrap success" id="success"></main>
+  <div id="site-footer"></div>
+  <script src="/js/app.js"></script>
+  <script>
+    const { inr, esc } = TLH;
+    const p = new URLSearchParams(location.search);
+    const name = (p.get('name') || '').split(' ')[0];
+    document.getElementById('success').innerHTML = p.get('receipt') ? `
+      <div class="tick"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <span class="eyebrow">Order confirmed</span>
+      <h1 style="font-size:clamp(2.4rem,5vw,3.6rem)">Thank you${name ? ', ' + esc(name) : ''}.</h1>
+      <p style="color:var(--grey)">Your linen is being carefully packed. A confirmation has been sent to your email.</p>
+      <dl>
+        <dt>Order number</dt><dd>${esc(p.get('receipt'))}</dd>
+        <dt>Payment ID</dt><dd>${esc(p.get('payment') || '')}</dd>
+        <dt>Amount paid</dt><dd>${inr(p.get('total') || 0)}</dd>
+      </dl>
+      ${p.get('demo') ? '<p class="notice" style="text-align:left">This was a simulated payment (demo mode). No money was charged.</p>' : ''}
+      <a href="/shop" class="btn">Continue shopping</a>` : `
+      <h1 style="font-size:2.6rem">No order to show</h1><a href="/" class="btn">Back to home</a>`;
+  </script>
+</body>
+</html>

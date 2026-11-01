@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your Cart — The Linen House</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <main class="wrap">
+    <div class="breadcrumb"><a href="/">Home</a> / Cart</div>
+    <h1 style="font-size:clamp(2.4rem,5vw,3.4rem)">Your cart</h1>
+    <div id="cart"></div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="/js/app.js"></script>
+  <script>
+    (async () => {
+      const { Cart, inr, esc, api } = TLH;
+      const cfg = await api('/api/checkout/config');
+      const root = document.getElementById('cart');
+
+      function render() {
+        const items = Cart.items();
+        if (!items.length) {
+          root.innerHTML = '<div class="empty"><h3>Your cart is empty</h3><p>Discover breathable linen made for every day.</p><a class="btn" href="/shop">Start shopping</a></div>';
+          return;
+        }
+        const subtotal = Cart.subtotal();
+        const shipping = subtotal >= cfg.freeShippingThreshold ? 0 : cfg.shippingFee;
+        const remaining = Math.max(0, cfg.freeShippingThreshold - subtotal);
+        root.innerHTML = `
+          <div class="cart-layout">
+            <div>
+              <div class="cart-head"><span>Product</span><span>Quantity</span><span>Total</span></div>
+              ${items.map((i) => `
+                <div class="cart-item" data-key="${esc(i.key)}">
+                  <div class="cart-prod prod-col">
+                    <a href="/product/${i.id}"><img src="${i.image}" alt="${esc(i.name)}"></a>
+                    <div>
+                      <h3><a href="/product/${i.id}">${esc(i.name)}</a></h3>
+                      <div class="meta">${esc(i.color)} · ${esc(i.size)} · ${inr(i.price)}</div>
+                      <button class="remove" data-remove>Remove</button>
+                    </div>
+                  </div>
+                  <div class="qty"><button data-step="-1" aria-label="Decrease">−</button><input type="number" value="${i.qty}" min="1" max="20" aria-label="Quantity"><button data-step="1" aria-label="Increase">+</button></div>
+                  <div class="line-total">${inr(i.price * i.qty)}</div>
+                </div>`).join('')}
+              <a href="/shop" class="link-underline" style="display:inline-block;margin-top:28px">← Continue shopping</a>
+            </div>
+            <aside class="summary">
+              <h2>Order summary</h2>
+              <div class="sum-row"><span>Subtotal</span><span>${inr(subtotal)}</span></div>
+              <div class="sum-row"><span>Shipping</span><span>${shipping ? inr(shipping) : 'Free'}</span></div>
+              <div class="sum-row total"><span>Total</span><span>${inr(subtotal + shipping)}</span></div>
+              <div class="ship-note">${remaining ? `You're ${inr(remaining)} away from free shipping.` : 'You’ve unlocked free shipping.'}
+                <div class="ship-bar"><i style="width:${Math.min(100, (subtotal / cfg.freeShippingThreshold) * 100)}%"></i></div></div>
+              <a href="/checkout" class="btn btn-block">Proceed to checkout</a>
+              <div class="secure">🔒 Secure checkout with Razorpay</div>
+            </aside>
+          </div>`;
+      }
+
+      root.addEventListener('click', (e) => {
+        const row = e.target.closest('[data-key]');
+        if (!row) return;
+        const key = row.dataset.key;
+        if (e.target.closest('[data-remove]')) { Cart.remove(key); render(); }
+        const step = e.target.closest('[data-step]');
+        if (step) {
+          const item = Cart.items().find((i) => i.key === key);
+          Cart.setQty(key, item.qty + Number(step.dataset.step)); render();
+        }
+      });
+      root.addEventListener('change', (e) => {
+        const row = e.target.closest('[data-key]');
+        if (row && e.target.matches('input')) { Cart.setQty(row.dataset.key, parseInt(e.target.value, 10) || 1); render(); }
+      });
+      render();
+    })();
+  </script>
+</body>
+</html>

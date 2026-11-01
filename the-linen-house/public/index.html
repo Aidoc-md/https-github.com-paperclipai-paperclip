@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Linen House — Pure Linen Clothing & Fabrics</title>
+  <meta name="description" content="Breathable, beautifully made linen clothing, fabrics and accessories from The Linen House.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">The Summer Edit · 2026</span>
+        <h1>Woven by nature,<br><em>worn</em> with ease.</h1>
+        <p>Breathable pure-linen essentials that soften with every wear — made for slow mornings and long, sunlit days.</p>
+        <div class="hero-actions">
+          <a href="/shop?filter=new" class="btn">Shop new arrivals</a>
+          <a href="/shop" class="btn btn-outline">Explore all</a>
+        </div>
+      </div>
+      <div class="hero-media">
+        <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1400&q=80" alt="Model wearing a relaxed linen outfit">
+        <a class="hero-tag" href="/product/lh-007"><strong>Selene Co-ord Set</strong>₹5,490 · Shop the look →</a>
+      </div>
+    </section>
+
+    <!-- Values strip -->
+    <div class="values">
+      <div><span>100% Linen</span>European flax</div>
+      <div><span>Pre-washed</span>No shrink, all soft</div>
+      <div><span>Free shipping</span>Above ₹2,999</div>
+      <div><span>Easy returns</span>Within 15 days</div>
+    </div>
+
+    <!-- Categories -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="eyebrow">Shop by category</span>
+          <h2>Made for every day</h2>
+          <p>From airy dresses to yardage for your next project — discover linen in every form.</p>
+        </div>
+        <div class="cat-grid reveal" id="categories"></div>
+      </div>
+    </section>
+
+    <!-- Bestsellers -->
+    <section class="section" style="padding-top:0">
+      <div class="wrap">
+        <div class="section-head row reveal">
+          <div>
+            <span class="eyebrow">Most loved</span>
+            <h2>Bestsellers</h2>
+          </div>
+          <div class="rail-controls">
+            <button class="rail-btn" data-rail="-1" aria-label="Scroll left"></button>
+            <button class="rail-btn" data-rail="1" aria-label="Scroll right"></button>
+          </div>
+        </div>
+        <div class="rail" id="bestsellers" tabindex="0" aria-label="Bestselling products"></div>
+      </div>
+    </section>
+
+    <!-- Story band -->
+    <section class="story">
+      <div class="story-media"><img src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=1200&q=80" alt="Linen garments hanging in the studio" loading="lazy"></div>
+      <div class="story-copy reveal">
+        <span class="eyebrow">Our story</span>
+        <h2>Slow fashion,<br>honest fabric.</h2>
+        <p>Every piece begins as flax grown with little water and no irrigation. We weave, stonewash and finish in small batches, so each garment feels lived-in from the very first wear.</p>
+        <p>Linen is naturally temperature-regulating, durable and biodegradable — the kindest way to keep cool.</p>
+        <a href="/shop" class="link-underline" style="align-self:start;margin-top:12px">Discover the collection</a>
+      </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="section reviews">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="eyebrow">Kind words</span>
+          <h2>Loved by our customers</h2>
+        </div>
+        <div class="review-grid reveal">
+          <figure class="review">
+            <div class="stars">★★★★★</div>
+            <blockquote>“The Aria dress is the softest thing I own. I've worn it to a wedding and to the market — it works for both.”</blockquote>
+            <figcaption class="reviewer"><div class="avatar">P</div><div>Priya Sharma<span>Mumbai · Verified buyer</span></div></figcaption>
+          </figure>
+          <figure class="review">
+            <div class="stars">★★★★★</div>
+            <blockquote>“Finally, a linen shirt that fits well and doesn't feel stiff. Bought it in three colours. Delivery was quick too.”</blockquote>
+            <figcaption class="reviewer"><div class="avatar">A</div><div>Arjun Mehta<span>Bengaluru · Verified buyer</span></div></figcaption>
+          </figure>
+          <figure class="review">
+            <div class="stars">★★★★★</div>
+            <blockquote>“I ordered the blush yardage for curtains and the colour is exactly as pictured. Beautiful weight and drape.”</blockquote>
+            <figcaption class="reviewer"><div class="avatar">N</div><div>Neha Iyer<span>Chennai · Verified buyer</span></div></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="section newsletter">
+      <div class="wrap reveal">
+        <span class="eyebrow">Join the house</span>
+        <h2>10% off your first order</h2>
+        <p style="color:var(--grey);margin-bottom:28px">New collections, care tips and early access — no clutter, ever.</p>
+        <form id="newsletter-form">
+          <input type="email" required placeholder="Your email address" aria-label="Email address">
+          <button type="submit">Subscribe</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    (async () => {
+      const { api, productCard, bindCards, ICONS, toast, reveal } = TLH;
+
+      const cats = await api('/api/categories');
+      document.getElementById('categories').innerHTML = cats.map((c) => `
+        <a class="cat-card" href="/shop?category=${c.slug}">
+          <img src="${c.image}" alt="${c.name}" loading="lazy">
+          <div class="cat-label"><h3>${c.name}</h3><p>${c.blurb}</p></div>
+        </a>`).join('');
+
+      const best = await api('/api/products?bestseller=true');
+      const rail = document.getElementById('bestsellers');
+      rail.innerHTML = best.map(productCard).join('');
+      bindCards(rail, best);
+
+      document.querySelector('[data-rail="-1"]').innerHTML = ICONS.left;
+      document.querySelector('[data-rail="1"]').innerHTML = ICONS.right;
+      document.querySelectorAll('[data-rail]').forEach((b) => b.addEventListener('click', () => {
+        rail.scrollBy({ left: Number(b.dataset.rail) * rail.clientWidth * 0.75, behavior: 'smooth' });
+      }));
+
+      document.getElementById('newsletter-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        e.target.reset();
+        toast('Thank you! Your welcome code is on its way.');
+      });
+      reveal();
+    })();
+  </script>
+</body>
+</html>

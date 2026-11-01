@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Product — The Linen House</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <main class="wrap">
+    <nav class="breadcrumb" id="crumbs"><a href="/">Home</a> / <a href="/shop">Shop</a></nav>
+    <div id="pdp"></div>
+    <section id="related-wrap" hidden style="padding-bottom:100px">
+      <div class="section-head"><span class="eyebrow">You may also like</span><h2>Complete the look</h2></div>
+      <div class="product-grid" id="related"></div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <script src="/js/app.js"></script>
+  <script>
+    (async () => {
+      const { api, inr, stars, esc, discount, Cart, Wishlist, toast, productCard, bindCards, ICONS, CATEGORY_NAMES, SWATCH } = TLH;
+      const id = location.pathname.split('/').pop();
+      let data;
+      try { data = await api('/api/products/' + encodeURIComponent(id)); }
+      catch {
+        document.getElementById('pdp').innerHTML = '<div class="empty"><h3>Product not found</h3><a class="btn" href="/shop">Back to shop</a></div>';
+        return;
+      }
+      const { product: p, related } = data;
+      document.title = `${p.name} — The Linen House`;
+      const catName = CATEGORY_NAMES[p.category];
+      document.getElementById('crumbs').innerHTML += ` / <a href="/shop?category=${p.category}">${catName}</a> / <span>${esc(p.name)}</span>`;
+
+      const state = { size: p.sizes.length === 1 ? p.sizes[0] : null, color: p.colors[0], qty: 1 };
+      const off = discount(p);
+      document.getElementById('pdp').innerHTML = `
+        <div class="pdp">
+          <div class="gallery">
+            <div class="thumbs">${p.images.map((src, i) => `<button class="${i ? '' : 'active'}" data-img="${i}" aria-label="View image ${i + 1}"><img src="${src}" alt=""></button>`).join('')}</div>
+            <div class="main-image"><img id="main-img" src="${p.images[0]}" alt="${esc(p.name)}"></div>
+          </div>
+          <div class="pdp-info">
+            <span class="eyebrow">${catName}${p.isNew ? ' · New' : ''}${p.bestseller ? ' · Bestseller' : ''}</span>
+            <h1>${esc(p.name)}</h1>
+            <div class="rating"><span class="stars">${stars(p.rating)}</span>${p.rating} · ${p.reviews} reviews</div>
+            <div class="price"><strong>${inr(p.price)}</strong>${off ? `<s>${inr(p.mrp)}</s><span class="off">Save ${off}%</span>` : ''}</div>
+            <small style="color:var(--grey)">Inclusive of all taxes${p.category === 'fabrics' ? ' · price per metre' : ''}</small>
+            <p class="desc">${esc(p.description)}</p>
+
+            <div class="opt">
+              <div class="opt-label">Colour <span id="color-name">${p.colors[0]}</span></div>
+              <div class="swatches">${p.colors.map((c, i) => `<button class="${i ? '' : 'active'}" data-color="${c}"><i style="background:${SWATCH[c] || '#ddd'}"></i>${c}</button>`).join('')}</div>
+            </div>
+            <div class="opt">
+              <div class="opt-label">${p.category === 'fabrics' ? 'Length' : 'Size'} <span id="size-name">${state.size || 'Select'}</span></div>
+              <div class="sizes">${p.sizes.map((s) => `<button data-size="${s}" class="${state.size === s ? 'active' : ''}">${s}</button>`).join('')}</div>
+            </div>
+
+            <div class="buy-row">
+              <div class="qty"><button data-q="-1" aria-label="Decrease">−</button><input id="qty" type="number" value="1" min="1" max="20" aria-label="Quantity"><button data-q="1" aria-label="Increase">+</button></div>
+              <button class="btn" id="add">Add to cart</button>
+              <button class="wish-lg ${Wishlist.has(p.id) ? 'on' : ''}" id="wish" aria-label="Add to wishlist">${ICONS.heart}</button>
+            </div>
+            <button class="btn btn-outline btn-block" id="buy-now" style="margin-bottom:28px">Buy it now</button>
+
+            <ul class="perks">
+              <li>Free shipping on orders above ₹2,999</li>
+              <li>Easy 15-day returns & exchanges</li>
+              <li>Secure payments via Razorpay — UPI, cards & net banking</li>
+            </ul>
+            <div class="accordion">
+              <details open><summary>Details</summary><div><ul class="details-list">${p.details.map((d) => `<li>${esc(d)}</li>`).join('')}</ul></div></details>
+              <details><summary>Care</summary><div>Machine wash cold on gentle with similar colours. Line dry in shade. Warm iron while damp. Do not bleach.</div></details>
+              <details><summary>Shipping & returns</summary><div>Dispatched within 24–48 hours. Delivered in 2–7 business days across India. Returns accepted within 15 days on unworn items with tags.</div></details>
+            </div>
+          </div>
+        </div>`;
+
+      const $ = (s) => document.querySelector(s);
+      document.querySelectorAll('[data-img]').forEach((b) => b.addEventListener('click', () => {
+        document.querySelectorAll('[data-img]').forEach((x) => x.classList.remove('active'));
+        b.classList.add('active');
+        $('#main-img').src = p.images[b.dataset.img];
+      }));
+      document.querySelectorAll('[data-color]').forEach((b) => b.addEventListener('click', () => {
+        document.querySelectorAll('[data-color]').forEach((x) => x.classList.remove('active'));
+        b.classList.add('active'); state.color = b.dataset.color; $('#color-name').textContent = state.color;
+      }));
+      document.querySelectorAll('[data-size]').forEach((b) => b.addEventListener('click', () => {
+        document.querySelectorAll('[data-size]').forEach((x) => x.classList.remove('active'));
+        b.classList.add('active'); state.size = b.dataset.size; $('#size-name').textContent = state.size;
+      }));
+      const qtyInput = $('#qty');
+      document.querySelectorAll('[data-q]').forEach((b) => b.addEventListener('click', () => {
+        qtyInput.value = Math.max(1, Math.min(20, (parseInt(qtyInput.value, 10) || 1) + Number(b.dataset.q)));
+      }));
+
+      function addToCart() {
+        if (!state.size) { toast('Please select a ' + (p.category === 'fabrics' ? 'length' : 'size')); return false; }
+        Cart.add(p, { size: state.size, color: state.color, qty: Math.max(1, Math.min(20, parseInt(qtyInput.value, 10) || 1)) });
+        return true;
+      }
+      $('#add').addEventListener('click', () => { if (addToCart()) toast(`${esc(p.name)} added to your cart <a href="/cart">View cart</a>`); });
+      $('#buy-now').addEventListener('click', () => { if (addToCart()) location.href = '/checkout'; });
+      $('#wish').addEventListener('click', (e) => {
+        const on = Wishlist.toggle(p.id);
+        e.currentTarget.classList.toggle('on', on);
+        toast(on ? 'Saved to your wishlist' : 'Removed from your wishlist');
+      });
+
+      if (related.length) {
+        $('#related-wrap').hidden = false;
+        const grid = $('#related');
+        grid.innerHTML = related.map(productCard).join('');
+        bindCards(grid, related);
+      }
+    })();
+  </script>
+</body>
+</html>
